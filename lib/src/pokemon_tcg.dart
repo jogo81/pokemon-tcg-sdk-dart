@@ -18,29 +18,40 @@ class PokemonTcgApi {
   final String apiKey;
   final http.Client client;
 
-  static const _baseUrl = 'https://api.pokemontcg.io/v2';
-  static const _setsUrl = '$_baseUrl/sets';
+  static const _scheme = 'https';
+  static const _host = 'api.pokemontcg.io';
+  static const _pathPrefix = '/v2';
+
+  static Uri _buildUrl(String path, {Map<String, String?>? queryParameters}) {
+    return new Uri(
+        scheme: _scheme,
+        host: _host,
+        path: _pathPrefix + '/' + path,
+        queryParameters: queryParameters);
+  }
 
   /// Gets a paginated list of all pokemon cards.
   Future<List<PokemonCard>> getCards({
-    int page = 0,
+    int page = 1,
+    int pageSize = 250,
+    List<String>? orderBy,
+    List<String>? select,
+    String? q
   }) async {
     http.Response response;
-    if (page == 0) {
-      response = await client.get(
-        Uri.parse('$_baseUrl/cards'),
-        headers: {
-          'x-api-key': apiKey,
-        },
-      );
-    } else {
-      response = await client.get(
-        Uri.parse('$_baseUrl/cards?page=$page'),
-        headers: {
-          'x-api-key': apiKey,
-        },
-      );
-    }
+
+    response = await client.get(
+      _buildUrl('cards', queryParameters: {
+        'page': page.toString(),
+        'pageSize': pageSize.toString(),
+        'orderBy': orderBy?.join(','),
+        'select': select?.join(','),
+        'q': q,
+      }),
+      headers: {
+        'x-api-key': apiKey,
+      },
+    );
 
     JsonMap json = jsonDecode(response.body);
     final cards = <PokemonCard>[];
@@ -54,24 +65,21 @@ class PokemonTcgApi {
   /// Gets a paginated list of all pokemon cards for a particular set.
   Future<List<PokemonCard>> getCardsForSet(
     String setId, {
-    int page = 0,
+    int page = 1,
+    int pageSize = 250,
   }) async {
     http.Response response;
-    if (page == 0) {
-      response = await client.get(
-        Uri.parse('$_baseUrl/cards?q=set.id:$setId'),
-        headers: {
-          'x-api-key': apiKey,
-        },
-      );
-    } else {
-      response = await client.get(
-        Uri.parse('$_baseUrl/cards?q=set.id:$setId&page=$page'),
-        headers: {
-          'x-api-key': apiKey,
-        },
-      );
-    }
+
+    response = await client.get(
+      _buildUrl('cards', queryParameters: {
+        'page': page.toString(),
+        'pageSize': pageSize.toString(),
+        'q': 'set.id:$setId',
+      }),
+      headers: {
+        'x-api-key': apiKey,
+      },
+    );
 
     JsonMap json = jsonDecode(response.body);
     final cards = <PokemonCard>[];
@@ -85,7 +93,7 @@ class PokemonTcgApi {
   /// Gets a single pokemon card based on the card ID (e.g. 'xy7-54')
   Future<PokemonCard> getCard(String cardId) async {
     final response = await client.get(
-      Uri.parse('$_baseUrl/cards/$cardId'),
+      _buildUrl('cards/$cardId'),
       headers: {
         'x-api-key': apiKey,
       },
@@ -96,9 +104,21 @@ class PokemonTcgApi {
   }
 
   /// Get All Sets
-  Future<CardSets> getSets() async {
+  Future<CardSets> getSets({
+    page = 1,
+    pageSize = 250,
+    List<String>? orderBy,
+    List<String>? select,
+    String? q,
+  }) async {
     final response = await client.get(
-      Uri.parse(_setsUrl),
+      _buildUrl('sets', queryParameters: {
+        'page': page.toString(),
+        'pageSize': pageSize.toString(),
+        'orderBy': orderBy?.join(','),
+        'select': select?.join(','),
+        'q': q,
+      }),
       headers: {
         'x-api-key': apiKey,
       },
@@ -116,7 +136,7 @@ class PokemonTcgApi {
   /// Returns a specific set by the set code
   Future<CardSet> getSet(String setId) async {
     final response = await client.get(
-      Uri.parse('$_setsUrl/$setId'),
+      _buildUrl('sets/$setId'),
       headers: {
         'x-api-key': apiKey,
       },
@@ -129,7 +149,7 @@ class PokemonTcgApi {
   /// Get All Types
   Future<List<ElementalType>> getTypes() async {
     final response = await client.get(
-      Uri.parse('$_baseUrl/types'),
+      _buildUrl('types'),
       headers: {
         'x-api-key': apiKey,
       },
@@ -148,7 +168,7 @@ class PokemonTcgApi {
   /// Get All Subtypes
   Future<List<Subtype>> getSubtypes() async {
     final response = await client.get(
-      Uri.parse('$_baseUrl/subtypes'),
+      _buildUrl('subtypes'),
       headers: {
         'x-api-key': apiKey,
       },
@@ -167,7 +187,7 @@ class PokemonTcgApi {
   /// Get All Supertypes
   Future<List<Supertype>> getSupertypes() async {
     final response = await client.get(
-      Uri.parse('$_baseUrl/supertypes'),
+      _buildUrl('supertypes'),
       headers: {
         'x-api-key': apiKey,
       },
@@ -186,7 +206,7 @@ class PokemonTcgApi {
   /// Get All Rarities
   Future<List<Rarity>> getRarities() async {
     final response = await client.get(
-      Uri.parse('$_baseUrl/rarities'),
+      _buildUrl('rarities'),
       headers: {
         'x-api-key': apiKey,
       },
