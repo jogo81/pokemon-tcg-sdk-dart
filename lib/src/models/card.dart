@@ -29,6 +29,7 @@ class PokemonCard {
     required this.retreatCost,
     required this.images,
     required this.tcgPlayer,
+    this.jsonData,
   });
 
   factory PokemonCard.fromJson(JsonMap json) {
@@ -103,6 +104,7 @@ class PokemonCard {
       retreatCost: _retreatCost,
       images: CardImages.fromJson(json['images']),
       tcgPlayer: json['tcgplayer'],
+      jsonData: json,
     );
   }
 
@@ -128,6 +130,7 @@ class PokemonCard {
   final List<String> retreatCost;
   final CardImages images;
   final dynamic tcgPlayer;
+  final JsonMap? jsonData;
 }
 
 class Ability {
